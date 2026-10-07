@@ -28,7 +28,12 @@ function App() {
       height: '100vh' 
     }}>
       {/* Виводимо помилку червоним, якщо вона є, для зручності дебагу */}
-      {error && <p style={{ color: '#ef4444' }}>Локальний запуск (Без Telegram)</p>}
+      {error && (
+  <div style={{ backgroundColor: '#ef4444', color: 'white', padding: '10px', borderRadius: '8px' }}>
+    <b>Помилка ініціалізації:</b> <br/>
+    <code>{error}</code>
+  </div>
+)}
 
       <h1>Привіт, {user?.first_name || 'Користувач'}! 👋</h1>
       <p>Твій Chat ID: {user?.id || 'Не знайдено (ти в браузері)'}</p>
