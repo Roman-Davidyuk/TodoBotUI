@@ -1,27 +1,32 @@
 import { useEffect, useState } from 'react';
 
-// Дістаємо нативний об'єкт напряму, обходячи обмеження TypeScript
-const WebApp = (window as any).Telegram?.WebApp;
-
 function App() {
   const [error, setError] = useState<string>('');
+  // Створюємо стан для збереження даних користувача
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    try {
-      if (WebApp) {
-        WebApp.ready();
-        WebApp.expand();
-      } else {
-        setError("Об'єкт Telegram не знайдено (ти в браузері)");
+    // Шукаємо об'єкт Telegram
+    const tg = (window as any).Telegram?.WebApp;
+
+    if (tg) {
+      try {
+        tg.ready();
+        tg.expand();
+        
+        // Зберігаємо дані в стан React, щоб екран оновився
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+          setUser(tg.initDataUnsafe.user);
+        } else {
+          setError("Об'єкт Telegram є, але дані користувача порожні (initDataUnsafe.user)");
+        }
+      } catch (err: any) {
+        setError(err.toString());
       }
-    } catch (err: any) {
-      setError(err.toString());
-      console.error("Telegram WebApp Error:", err);
+    } else {
+      setError("Telegram WebApp API не знайдено.");
     }
   }, []);
-
-  // Безпечно дістаємо дані користувача
-  const user = WebApp?.initDataUnsafe?.user;
 
   return (
     <div style={{ 
@@ -32,16 +37,17 @@ function App() {
     }}>
       {error && (
         <div style={{ backgroundColor: '#ef4444', color: 'white', padding: '10px', borderRadius: '8px' }}>
-          <b>Помилка:</b> <br/>
+          <b>Помилка або статус:</b> <br/>
           <code>{error}</code>
         </div>
       )}
 
+      {/* Якщо user є - показуємо його дані, інакше показуємо фолбек */}
       <h1>Привіт, {user?.first_name || 'Користувач'}! 👋</h1>
       <p>Твій Chat ID: {user?.id || 'Немає даних'}</p>
       
       <button 
-        onClick={() => WebApp?.close()}
+        onClick={() => (window as any).Telegram?.WebApp?.close()}
         style={{ 
           padding: '10px 20px', 
           marginTop: '20px', 
