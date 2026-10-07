@@ -1,48 +1,29 @@
 import { useEffect, useState } from 'react';
 
 function App() {
-  const [error, setError] = useState<string>('');
-  // Створюємо стан для збереження даних користувача
   const [user, setUser] = useState<any>(null);
+  const [debugData, setDebugData] = useState<string>('Очікування даних...');
 
   useEffect(() => {
-    // Шукаємо об'єкт Telegram
     const tg = (window as any).Telegram?.WebApp;
 
     if (tg) {
-      try {
-        tg.ready();
-        tg.expand();
-        
-        // Зберігаємо дані в стан React, щоб екран оновився
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-          setUser(tg.initDataUnsafe.user);
-        } else {
-          setError("Об'єкт Telegram є, але дані користувача порожні (initDataUnsafe.user)");
-        }
-      } catch (err: any) {
-        setError(err.toString());
+      tg.ready();
+      tg.expand();
+      
+      // Виводимо абсолютно весь об'єкт initDataUnsafe на екран у вигляді тексту
+      setDebugData(JSON.stringify(tg.initDataUnsafe, null, 2));
+      
+      if (tg.initDataUnsafe?.user) {
+        setUser(tg.initDataUnsafe.user);
       }
     } else {
-      setError("Telegram WebApp API не знайдено.");
+      setDebugData("Об'єкт window.Telegram.WebApp не знайдено.");
     }
   }, []);
 
   return (
-    <div style={{ 
-      padding: '20px', 
-      color: 'var(--tg-theme-text-color, #ffffff)', 
-      backgroundColor: 'var(--tg-theme-bg-color, #242424)', 
-      height: '100vh' 
-    }}>
-      {error && (
-        <div style={{ backgroundColor: '#ef4444', color: 'white', padding: '10px', borderRadius: '8px' }}>
-          <b>Помилка або статус:</b> <br/>
-          <code>{error}</code>
-        </div>
-      )}
-
-      {/* Якщо user є - показуємо його дані, інакше показуємо фолбек */}
+    <div style={{ padding: '20px', color: '#ffffff', backgroundColor: '#242424', minHeight: '100vh' }}>
       <h1>Привіт, {user?.first_name || 'Користувач'}! 👋</h1>
       <p>Твій Chat ID: {user?.id || 'Немає даних'}</p>
       
@@ -50,16 +31,24 @@ function App() {
         onClick={() => (window as any).Telegram?.WebApp?.close()}
         style={{ 
           padding: '10px 20px', 
-          marginTop: '20px', 
-          backgroundColor: 'var(--tg-theme-button-color, #3390ec)', 
-          color: 'var(--tg-theme-button-text-color, #ffffff)', 
+          backgroundColor: '#3390ec', 
+          color: '#ffffff', 
           border: 'none', 
           borderRadius: '8px',
-          cursor: 'pointer'
+          cursor: 'pointer',
+          marginBottom: '20px'
         }}
       >
         Закрити Mini App
       </button>
+
+      {/* Блок дебагу, який покаже правду */}
+      <div style={{ backgroundColor: '#111111', padding: '15px', borderRadius: '8px', overflowX: 'auto' }}>
+        <h3 style={{ marginTop: 0, color: '#ef4444' }}>🛠 Debug Data:</h3>
+        <pre style={{ fontSize: '12px', margin: 0 }}>
+          {debugData}
+        </pre>
+      </div>
     </div>
   );
 }
